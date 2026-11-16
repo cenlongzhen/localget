@@ -30,6 +30,32 @@ Future<String?> pickDirectoryPathAndroid() async {
   return result;
 }
 
+/// Whether the app holds the "all files access" grant.
+Future<bool> hasAllFilesAccessAndroid() async {
+  try {
+    return await _methodChannel.invokeMethod<bool>('hasAllFilesAccess') ?? false;
+  } catch (e) {
+    _logger.warning('Could not query all-files access', e);
+    return false;
+  }
+}
+
+/// Opens the system screen that grants "all files access".
+Future<void> requestAllFilesAccessAndroid() async {
+  try {
+    await _methodChannel.invokeMethod('requestAllFilesAccess');
+  } catch (e) {
+    _logger.warning('Could not open all-files access settings', e);
+  }
+}
+
+/// Picks a directory and resolves it to an absolute path, as required by the
+/// shared-directory feature.
+Future<String?> pickShareDirectoryPathAndroid() async {
+  final result = await _methodChannel.invokeMethod<String>('pickShareDirectoryPath');
+  return result;
+}
+
 Future<List<FileInfo>?> pickFilesAndroid() async {
   final result = await _methodChannel.invokeMethod<List>('pickFiles');
   if (result == null) {
@@ -71,6 +97,29 @@ Future<void> openContentUri({
   await _methodChannel.invokeMethod('openContentUri', {
     'uri': uri,
   });
+}
+
+/// Deletes a document this app created, e.g. the partial file of a cancelled
+/// download.
+Future<void> deleteContentUriAndroid({required String uri}) async {
+  _logger.info('Deleting content URI: $uri');
+  await _methodChannel.invokeMethod<bool>('deleteContentUri', {
+    'uri': uri,
+  });
+}
+
+/// Extracts the poster frame of a video or the album art of an audio file as
+/// JPEG bytes. Returns null when the file has neither.
+Future<Uint8List?> extractMediaThumbnailAndroid({required String path, required bool isVideo}) async {
+  try {
+    return await _methodChannel.invokeMethod<Uint8List>('extractMediaThumbnail', {
+      'path': path,
+      'isVideo': isVideo,
+    });
+  } catch (e) {
+    _logger.warning('Could not extract a media thumbnail for $path', e);
+    return null;
+  }
 }
 
 /// Tells MainActivity that the Dart side is now subscribed to the share_handler media stream,

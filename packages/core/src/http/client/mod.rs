@@ -1,5 +1,6 @@
 mod scoped_host;
 mod server_cert_verifier;
+pub mod share;
 mod url;
 pub mod v2;
 pub mod v3;
@@ -45,7 +46,7 @@ pub enum ClientError {
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 
-    #[error("Upload cancelled")]
+    #[error("Transfer cancelled")]
     Cancelled,
 }
 
@@ -170,6 +171,70 @@ impl LsHttpClient {
             LsHttpClient::V3(client) => client.cancel(protocol, ip, port, session_id).await,
         }
     }
+
+    /// Lists the shared directories of the peer.
+    pub async fn share_dirs(
+        &self,
+        protocol: model::discovery::ProtocolType,
+        ip: &str,
+        port: u16,
+    ) -> Result<Vec<crate::share::ShareDirMeta>, ClientError> {
+        match self {
+            LsHttpClient::V2(client) => client.share_dirs(protocol, ip, port).await,
+            LsHttpClient::V3(_) => Err(v3_share_unsupported()),
+        }
+    }
+
+    /// Lists one page of entries of one shared directory of the peer.
+    pub async fn share_list(
+        &self,
+        protocol: model::discovery::ProtocolType,
+        ip: &str,
+        port: u16,
+        dir: &uuid::Uuid,
+        sub: &str,
+        cursor: Option<&str>,
+        limit: u16,
+    ) -> Result<crate::share::ShareListResponse, ClientError> {
+        match self {
+            LsHttpClient::V2(client) => {
+                client
+                    .share_list(protocol, ip, port, dir, sub, cursor, limit)
+                    .await
+            }
+            LsHttpClient::V3(_) => Err(v3_share_unsupported()),
+        }
+    }
+
+    /// Downloads one shared file into `writer`, reporting cumulative bytes
+    /// through `progress`. Returns the number of bytes written.
+    pub async fn share_download_to_writer<W: tokio::io::AsyncWrite + Unpin>(
+        &self,
+        protocol: model::discovery::ProtocolType,
+        ip: &str,
+        port: u16,
+        dir: &uuid::Uuid,
+        path: &str,
+        range: Option<share::ByteRange>,
+        writer: &mut W,
+        progress: impl FnMut(u64) + Send,
+        cancel: tokio_util::sync::CancellationToken,
+    ) -> Result<u64, ClientError> {
+        match self {
+            LsHttpClient::V2(client) => {
+                client
+                    .share_download_to_writer(protocol, ip, port, dir, path, range, writer, progress, cancel)
+                    .await
+            }
+            LsHttpClient::V3(_) => Err(v3_share_unsupported()),
+        }
+    }
+}
+
+fn v3_share_unsupported() -> ClientError {
+    ClientError::Other(anyhow::anyhow!(
+        "Shared directories require protocol v2, but the client speaks v3."
+    ))
 }
 
 /// Builds a streaming request body from the file content, invoking `progress`

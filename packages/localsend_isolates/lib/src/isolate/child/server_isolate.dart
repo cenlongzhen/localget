@@ -44,12 +44,27 @@ class HttpServerStartTask implements BaseHttpServerTask {
   /// application instance request this one to show itself. `null` disables it.
   final String? showToken;
 
+  /// Initial shared-directory snapshot handed to the Rust HTTP server via
+  /// `start_with_port_sharing`. `null` keeps `/api/localsend/v2/share/*` at 404.
+  final RsShareSnapshot? shareSnapshot;
+
   HttpServerStartTask({
     required this.pin,
     required this.verifyChecksums,
     required this.web,
     required this.showToken,
+    this.shareSnapshot,
   });
+}
+
+/// Replacement snapshot for the shared-directory registry held by the running
+/// server. Emitted by [IsolateHttpServerUpdateShareAction] whenever the local
+/// [ShareNotifier] mutates. The Rust side hot-swaps the contents of the same
+/// `Arc<ShareRegistry>` the HTTP handlers were started with; **no restart**.
+class HttpServerUpdateShareTask implements BaseHttpServerTask {
+  final RsShareSnapshot snapshot;
+
+  HttpServerUpdateShareTask({required this.snapshot});
 }
 
 /// Stops the HTTP server.
@@ -421,6 +436,7 @@ Future<void> setupHttpServerIsolate(
                   verifyChecksums: startTask.verifyChecksums,
                   web: startTask.web,
                   showToken: startTask.showToken,
+                  shareSnapshot: startTask.shareSnapshot,
                 );
           } catch (e) {
             // Starting failed (e.g. the port is already in use).
@@ -566,6 +582,11 @@ Future<void> setupHttpServerIsolate(
               id: task.id,
             ),
           );
+          return;
+        case HttpServerUpdateShareTask(:final snapshot):
+          // Fire-and-forget: the Rust registry always exists, so a snapshot
+          // pushed after startup takes effect without a restart.
+          await ref.read(httpServerProvider).updateShare(snapshot);
           return;
         case HttpServerPrepareUploadDecisionTask decisionTask:
           final config = decisionTask.config;

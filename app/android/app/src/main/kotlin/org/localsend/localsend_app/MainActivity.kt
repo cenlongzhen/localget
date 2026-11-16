@@ -7,6 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -18,6 +21,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,6 +34,8 @@ private const val REQUEST_CODE_PICK_DIRECTORY = 1
 private const val REQUEST_CODE_PICK_DIRECTORY_PATH = 2
 private const val REQUEST_CODE_PICK_FILE = 3
 private const val REQUEST_CODE_LOCAL_NETWORK = 4
+private const val REQUEST_CODE_PICK_SHARE_DIRECTORY = 5
+private const val REQUEST_CODE_STORAGE = 6
 
 // Not available as a constant in compileSdk 36.
 private const val PERMISSION_ACCESS_LOCAL_NETWORK = "android.permission.ACCESS_LOCAL_NETWORK"
@@ -98,6 +104,18 @@ class MainActivity : FlutterActivity() {
                     openDirectoryPicker(onlyPath = true)
                 }
 
+                "pickShareDirectoryPath" -> {
+                    pendingResult = result
+                    openDirectoryPicker(onlyPath = true, requestCode = REQUEST_CODE_PICK_SHARE_DIRECTORY)
+                }
+
+                "hasAllFilesAccess" -> result.success(hasAllFilesAccess())
+
+                "requestAllFilesAccess" -> {
+                    requestAllFilesAccess()
+                    result.success(null)
+                }
+
                 "createDirectory" -> handleCreateDirectory(call, result)
 
                 "getFileDescriptor" -> handleGetFileDescriptor(call, result)
@@ -105,6 +123,10 @@ class MainActivity : FlutterActivity() {
                 "createFile" -> handleCreateFile(call, result)
 
                 "openFileForWriting" -> handleOpenFileForWriting(call, result)
+
+                "deleteContentUri" -> handleDeleteContentUri(call, result)
+
+                "extractMediaThumbnail" -> handleExtractMediaThumbnail(call, result)
 
                 "scanFile" -> handleScanFile(call, result)
 
@@ -325,13 +347,120 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun openDirectoryPicker(onlyPath: Boolean) {
+    /// Deletes a document this app created, e.g. the partial file of a cancelled download.
+    private fun handleDeleteContentUri(call: MethodCall, result: MethodChannel.Result) {
+        val uriString = call.argument<String>("uri")
+        if (uriString == null) {
+            result.error("INVALID_ARGUMENT", "Missing content URI", null)
+            return
+        }
+
+        val uri = Uri.parse(uriString)
+        if (uri.scheme != ContentResolver.SCHEME_CONTENT) {
+            result.error("INVALID_ARGUMENT", "Expected a content:// URI", null)
+            return
+        }
+
+        try {
+            result.success(DocumentsContract.deleteDocument(contentResolver, uri))
+        } catch (e: SecurityException) {
+            result.error("PERMISSION_DENIED", e.message ?: "Permission denied for content URI", null)
+        } catch (e: Exception) {
+            result.error("DELETE_FAILED", e.message ?: "Failed to delete the document", null)
+        }
+    }
+
+    /// Extracts a video poster or the album art of an audio file as JPEG bytes.
+    private fun handleExtractMediaThumbnail(call: MethodCall, result: MethodChannel.Result) {
+        val path = call.argument<String>("path")
+        if (path == null) {
+            result.error("INVALID_ARGUMENT", "Missing path", null)
+            return
+        }
+
+        try {
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(path)
+                val isVideo = call.argument<Boolean>("isVideo") == true
+                val picture = if (isVideo) {
+                    retriever.getScaledFrameAtTime(
+                        -1,
+                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                        320,
+                        320
+                    )
+                } else {
+                    retriever.embeddedPicture?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+                } ?: run {
+                    result.success(null)
+                    return
+                }
+
+                val stream = ByteArrayOutputStream()
+                picture.compress(Bitmap.CompressFormat.JPEG, 85, stream)
+                result.success(stream.toByteArray())
+            } finally {
+                retriever.release()
+            }
+        } catch (e: Exception) {
+            result.error("THUMBNAIL_FAILED", e.message ?: "Failed to extract a thumbnail", null)
+        }
+    }
+
+    private fun openDirectoryPicker(onlyPath: Boolean, requestCode: Int = if (onlyPath) REQUEST_CODE_PICK_DIRECTORY_PATH else REQUEST_CODE_PICK_DIRECTORY) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        startActivityForResult(
-            intent,
-            if (onlyPath) REQUEST_CODE_PICK_DIRECTORY_PATH else REQUEST_CODE_PICK_DIRECTORY
-        )
+        startActivityForResult(intent, requestCode)
+    }
+
+    /// Opens the system screen where the user grants this app full storage access.
+    ///
+    /// Below Android 11 the storage permissions in the manifest are enough, so
+    /// there is no separate screen to open.
+    private fun requestAllFilesAccess() {
+        if (hasAllFilesAccess()) {
+            return
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            requestPermissions(arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CODE_STORAGE)
+            return
+        }
+        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+        intent.data = Uri.parse("package:$packageName")
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+        }
+    }
+
+    /// Whether the app may read the whole external storage.
+    private fun hasAllFilesAccess(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
+        return Environment.isExternalStorageManager()
+    }
+
+    /// Converts a SAF tree URI into the absolute filesystem path it points at.
+    ///
+    /// A tree id is either `primary:<rel>` for the internal volume or
+    /// `<volume-id>:<rel>` for a removable one; both map onto `/storage/<volume>/<rel>`.
+    private fun treeUriToAbsolutePath(uri: Uri): String? {
+        val treeId = DocumentsContract.getTreeDocumentId(uri)
+        val separator = treeId.indexOf(':')
+        if (separator == -1) {
+            return null
+        }
+        val volume = treeId.substring(0, separator)
+        val relative = treeId.substring(separator + 1).trim('/')
+        val volumeRoot = when {
+            volume.equals("primary", ignoreCase = true) -> Environment.getExternalStorageDirectory().absolutePath
+            volume.matches(Regex("^[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}$")) -> "/storage/$volume"
+            else -> return null
+        }
+        return if (relative.isEmpty()) volumeRoot else "$volumeRoot/$relative"
     }
 
     private fun openFilePicker() {
@@ -392,6 +521,24 @@ class MainActivity : FlutterActivity() {
                     pendingResult?.error("Error", "Failed to access directory", null)
                     pendingResult = null
                 }
+            }
+
+            REQUEST_CODE_PICK_SHARE_DIRECTORY -> {
+                val uri: Uri? = data.data
+                if (uri == null) {
+                    pendingResult?.error("Error", "Failed to access directory", null)
+                    pendingResult = null
+                    return
+                }
+                // The shared-directory feature reads through absolute paths, so a
+                // content URI would be useless to the Rust side.
+                val path = treeUriToAbsolutePath(uri)
+                if (path == null) {
+                    pendingResult?.error("UNSUPPORTED", "This provider does not expose a filesystem path", null)
+                } else {
+                    pendingResult?.success(path)
+                }
+                pendingResult = null
             }
 
             REQUEST_CODE_PICK_FILE -> {

@@ -21,6 +21,7 @@ import 'package:localsend_app/util/shared_preferences/shared_preferences_portabl
 import 'package:localsend_app/util/ui/animations_status.dart';
 import 'package:localsend_isolates/constants.dart';
 import 'package:localsend_isolates/model/device.dart';
+import 'package:localsend_isolates/model/share.dart';
 import 'package:localsend_isolates/model/stored_security_context.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -57,6 +58,10 @@ const _receiveHistory = 'ls_receive_history';
 
 // Favorites
 const _favorites = 'ls_favorites';
+
+// Shared directories (long-term only) and the trusted-device allowlist
+const _shareDirectories = 'ls_share_directories';
+const _shareTrustedDevices = 'ls_share_trusted_devices';
 
 // App Window Offset and Size info
 const _windowOffsetX = 'ls_window_offset_x';
@@ -254,6 +259,63 @@ class PersistenceService {
   Future<void> setStunServers(List<String> servers) async {
     await _prefs.setString(_stunServers, jsonEncode(servers));
   }
+
+  /// Long-term shared directories; session-only ones never reach this store.
+  List<SharedDirectory> getShareDirectories() {
+    final raw = _prefs.getString(_shareDirectories);
+    if (raw == null) return [];
+    return (jsonDecode(raw) as List).map((e) => _sharedDirectoryFromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> setShareDirectories(List<SharedDirectory> directories) async {
+    await _prefs.setString(_shareDirectories, jsonEncode(directories.map(_sharedDirectoryToJson).toList()));
+  }
+
+  List<TrustedDevice> getShareTrustedDevices() {
+    final raw = _prefs.getString(_shareTrustedDevices);
+    if (raw == null) return [];
+    return (jsonDecode(raw) as List).map((e) => _trustedDeviceFromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> setShareTrustedDevices(List<TrustedDevice> devices) async {
+    await _prefs.setString(_shareTrustedDevices, jsonEncode(devices.map(_trustedDeviceToJson).toList()));
+  }
+
+  static Map<String, dynamic> _sharedDirectoryToJson(SharedDirectory dir) => {
+    'id': dir.id,
+    'name': dir.name,
+    'root': dir.root,
+    'kind': dir.kind.name,
+    'readOnly': dir.readOnly,
+    'enabled': dir.enabled,
+    'addedAt': dir.addedAt.millisecondsSinceEpoch,
+  };
+
+  static SharedDirectory _sharedDirectoryFromJson(Map<String, dynamic> json) => SharedDirectory(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    root: json['root'] as String,
+    kind: json['kind'] == ShareKind.sessionOnly.name ? ShareKind.sessionOnly : ShareKind.longTerm,
+    readOnly: json['readOnly'] as bool? ?? true,
+    enabled: json['enabled'] as bool? ?? true,
+    addedAt: DateTime.fromMillisecondsSinceEpoch(json['addedAt'] as int? ?? 0),
+  );
+
+  static Map<String, dynamic> _trustedDeviceToJson(TrustedDevice device) => {
+    'fingerprint': device.fingerprint,
+    'alias': device.alias,
+    'addedAt': device.addedAt.millisecondsSinceEpoch,
+    'lastSeenAt': device.lastSeenAt?.millisecondsSinceEpoch,
+    'deviceType': device.deviceType.name,
+  };
+
+  static TrustedDevice _trustedDeviceFromJson(Map<String, dynamic> json) => TrustedDevice(
+    fingerprint: json['fingerprint'] as String,
+    alias: json['alias'] as String,
+    addedAt: DateTime.fromMillisecondsSinceEpoch(json['addedAt'] as int? ?? 0),
+    lastSeenAt: json['lastSeenAt'] == null ? null : DateTime.fromMillisecondsSinceEpoch(json['lastSeenAt'] as int),
+    deviceType: DeviceType.values.firstWhere((e) => e.name == json['deviceType'], orElse: () => DeviceType.desktop),
+  );
 
   List<ReceiveHistoryEntry> getReceiveHistory() {
     final historyRaw = _prefs.getStringList(_receiveHistory) ?? [];

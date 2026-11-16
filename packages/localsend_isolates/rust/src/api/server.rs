@@ -1,8 +1,9 @@
 use crate::frb_generated::StreamSink;
 use flutter_rust_bridge::frb;
 pub use localsend::http::dto_v2::RegisterDtoV2;
-use localsend::http::server::ServerConfigV2;
+use localsend::http::server::{start_with_port_sharing, ServerConfigV2};
 pub use localsend::http::server::TlsConfig;
+use localsend::share::{ShareKind, ShareRegistry, SharedDirectory, TrustedDevice};
 use localsend::http::server::common::save::FileUploadTarget;
 use localsend::http::server::internal::{InternalConfig, InternalEvent};
 pub use localsend::http::server::v2::SessionEndReasonV2;
@@ -18,6 +19,7 @@ use localsend::model::transfer::{FileContent, FileDto};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{Mutex, mpsc, oneshot};
+use uuid::Uuid;
 
 /// Events emitted by the HTTP server that must be handled by the application.
 ///
@@ -118,6 +120,10 @@ pub struct RsHttpServer {
     pending_download_decisions: Mutex<HashMap<String, oneshot::Sender<bool>>>,
     pending_downloads: Mutex<HashMap<(String, String), oneshot::Sender<FileContent>>>,
     internal_event_rx: Mutex<Option<mpsc::Receiver<InternalEvent>>>,
+    /// Handle on the same `Arc<ShareRegistry>` the HTTP handlers already hold.
+    /// [`RsHttpServer::update_share`] hot-swaps contents so the running
+    /// server picks up new directories / trusted peers **without a restart**.
+    share: Arc<ShareRegistry>,
 }
 
 /// The stoppable part of a running server, shared between [RsHttpServer] and
@@ -211,6 +217,7 @@ pub async fn start_server(
     verify_checksums: bool,
     web: WebParams,
     show_token: Option<String>,
+    share_snapshot: Option<RsShareSnapshot>,
 ) -> anyhow::Result<RsHttpServer> {
     // Stop a server left over from before a hot restart (its Dart owner died
     // without calling stop)
@@ -253,7 +260,16 @@ pub async fn start_server(
         None => (None, None),
     };
 
-    let handle = localsend::http::server::start_with_port(
+    // The registry is always materialized so that `update_share` stays
+    // effective for the whole lifetime of the server, even when the app had no
+    // shared directory or trusted device yet at startup.
+    let share_registry: Arc<ShareRegistry> = Arc::new(
+        share_snapshot
+            .map(|snapshot| snapshot.into_registry())
+            .unwrap_or_default(),
+    );
+
+    let handle = start_with_port_sharing(
         port,
         tls,
         ClientInfo {
@@ -270,6 +286,7 @@ pub async fn start_server(
             event_tx,
         }),
         web_config,
+        Some(share_registry.clone()),
         stop_rx,
     )
     .await?;
@@ -289,6 +306,7 @@ pub async fn start_server(
         pending_download_decisions: Mutex::new(HashMap::new()),
         pending_downloads: Mutex::new(HashMap::new()),
         internal_event_rx: Mutex::new(internal_event_rx),
+        share: share_registry,
     })
 }
 
@@ -676,6 +694,79 @@ impl RsHttpServer {
             .retain(|(sid, _), _| sid != &session_id);
     }
 
+    /// Hot-swaps the shared-directory state the HTTP `share::*`
+    /// handlers already see through `Arc<ShareRegistry>`. No server restart is
+    /// needed.
+    pub async fn update_share(&self, snapshot: RsShareSnapshot) -> anyhow::Result<()> {
+        let registry = &self.share;
+        let dirs: Vec<SharedDirectory> = snapshot
+            .directories
+            .into_iter()
+            .filter_map(|d| {
+                let id: Uuid = d.id.parse().ok()?;
+                Some(SharedDirectory {
+                    id,
+                    name: d.name,
+                    root: d.root.into(),
+                    kind: match d.kind.as_str() {
+                        "sessionOnly" => ShareKind::SessionOnly,
+                        _ => ShareKind::LongTerm,
+                    },
+                    read_only: d.read_only,
+                    enabled: d.enabled,
+                    added_at_unix_secs: d.added_at_unix_secs,
+                })
+            })
+            .collect();
+        let trusted: Vec<TrustedDevice> = snapshot
+            .trusted_devices
+            .into_iter()
+            .map(|t| TrustedDevice {
+                fingerprint: t.fingerprint,
+                alias: t.alias,
+                added_at_unix_secs: t.added_at_unix_secs,
+                last_seen_at_unix_secs: t.last_seen_at_unix_secs,
+            })
+            .collect();
+        registry.replace_all(dirs, trusted);
+        Ok(())
+    }
+
+    /// Current shared-directory view.
+    /// Handy after a restart / hot reload to hydrate the Flutter UI.
+    pub fn get_share_snapshot(&self) -> Option<RsShareSnapshot> {
+        let registry = &self.share;
+        let snap = registry.snapshot();
+        Some(RsShareSnapshot {
+            directories: snap
+                .directories
+                .into_iter()
+                .map(|d| RsSharedDirectory {
+                    id: d.id.to_string(),
+                    name: d.name,
+                    root: d.root.to_string_lossy().into_owned(),
+                    kind: match d.kind {
+                        ShareKind::LongTerm => "longTerm".to_string(),
+                        ShareKind::SessionOnly => "sessionOnly".to_string(),
+                    },
+                    read_only: d.read_only,
+                    enabled: d.enabled,
+                    added_at_unix_secs: d.added_at_unix_secs,
+                })
+                .collect(),
+            trusted_devices: snap
+                .trusted_devices
+                .into_iter()
+                .map(|t| RsTrustedDevice {
+                    fingerprint: t.fingerprint,
+                    alias: t.alias,
+                    added_at_unix_secs: t.added_at_unix_secs,
+                    last_seen_at_unix_secs: t.last_seen_at_unix_secs,
+                })
+                .collect(),
+        })
+    }
+
     /// Stops the server.
     /// Returns after the listeners are closed, so the port can be bound again.
     pub async fn stop(&self) {
@@ -804,4 +895,74 @@ pub struct _RegisterDtoV2 {
 pub enum _SessionEndReasonV2 {
     Finished,
     Cancelled,
+}
+
+// -----------------------------------------------------------------------------
+// Shared-directory FRB types.
+//
+// These mirror `localsend::share::*` but use only primitives (String, bool,
+// u64, Option<u64>, Vec<…>) so FRB generates plain Dart classes the Flutter
+// side can construct without pulling in serde / UUID / PathBuf types across
+// the boundary.
+// -----------------------------------------------------------------------------
+
+/// A shared directory as seen from Dart.
+pub struct RsSharedDirectory {
+    pub id: String,
+    pub name: String,
+    pub root: String,
+    /// `"longTerm"` or `"sessionOnly"`.
+    pub kind: String,
+    pub read_only: bool,
+    pub enabled: bool,
+    pub added_at_unix_secs: u64,
+}
+
+/// A trusted peer as seen from Dart.
+pub struct RsTrustedDevice {
+    pub fingerprint: String,
+    pub alias: String,
+    pub added_at_unix_secs: u64,
+    pub last_seen_at_unix_secs: Option<u64>,
+}
+
+/// Aggregate view pushed into / pulled from the FRB boundary.
+pub struct RsShareSnapshot {
+    pub directories: Vec<RsSharedDirectory>,
+    pub trusted_devices: Vec<RsTrustedDevice>,
+}
+
+impl RsShareSnapshot {
+    fn into_registry(self) -> ShareRegistry {
+        let dirs: Vec<SharedDirectory> = self
+            .directories
+            .into_iter()
+            .filter_map(|d| {
+                let id: Uuid = d.id.parse().ok()?;
+                Some(SharedDirectory {
+                    id,
+                    name: d.name,
+                    root: d.root.into(),
+                    kind: match d.kind.as_str() {
+                        "sessionOnly" => ShareKind::SessionOnly,
+                        _ => ShareKind::LongTerm,
+                    },
+                    read_only: d.read_only,
+                    enabled: d.enabled,
+                    added_at_unix_secs: d.added_at_unix_secs,
+                })
+            })
+            .collect();
+        let trusted: Vec<TrustedDevice> = self
+            .trusted_devices
+            .into_iter()
+            .map(|t| TrustedDevice {
+                fingerprint: t.fingerprint,
+                alias: t.alias,
+                added_at_unix_secs: t.added_at_unix_secs,
+                last_seen_at_unix_secs: t.last_seen_at_unix_secs,
+            })
+            .collect();
+        ShareRegistry::load(dirs, trusted)
+    }
 }

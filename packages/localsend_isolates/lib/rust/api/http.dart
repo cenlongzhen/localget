@@ -12,8 +12,8 @@ import 'package:localsend_isolates/rust/frb_generated.dart';
 
 part 'http.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `resolve_file_content`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `from`
+// These functions are ignored because they are not marked as `pub`: `resolve_file_content`, `resolve_save_sink`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`
 
 /// Creates an HTTP client.
 ///
@@ -54,6 +54,39 @@ abstract class RsHttpClient implements RustOpaqueInterface {
     required String ip,
     required int port,
     required RegisterDto payload,
+  });
+
+  /// Lists the shared directories the peer publishes.
+  Future<List<RsShareDir>> shareDirs({required ProtocolType protocol, required String ip, required int port});
+
+  /// Downloads one shared file into the given target, emitting
+  /// [RsShareDownloadEvent]s on [sink].
+  ///
+  /// Failures are emitted as [RsShareDownloadEvent::Failed] instead of being
+  /// returned: flutter_rust_bridge discards the returned `Result` of
+  /// functions taking a [StreamSink], so a returned error would become an
+  /// uncaught async error killing the calling isolate.
+  Stream<RsShareDownloadEvent> shareDownload({
+    required ProtocolType protocol,
+    required String ip,
+    required int port,
+    required String dir,
+    required String path,
+    required BigInt totalSize,
+    String? targetPath,
+    int? targetFileDescriptor,
+    required RsCancellationToken cancelToken,
+  });
+
+  /// Lists one page of a directory of the peer's share.
+  Future<RsShareListPage> shareList({
+    required ProtocolType protocol,
+    required String ip,
+    required int port,
+    required String dir,
+    required String sub,
+    String? cursor,
+    required int limit,
   });
 
   /// Uploads a single file, emitting [RsUploadEvent]s on [sink].
@@ -139,6 +172,117 @@ sealed class RsHttpClientError with _$RsHttpClientError implements FrbException 
   const factory RsHttpClientError.other(
     String field0,
   ) = RsHttpClientError_Other;
+}
+
+/// One directory a remote peer publishes.
+class RsShareDir {
+  final String id;
+  final String name;
+  final bool readOnly;
+
+  /// `"longTerm"` or `"sessionOnly"`.
+  final String kind;
+
+  const RsShareDir({
+    required this.id,
+    required this.name,
+    required this.readOnly,
+    required this.kind,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ readOnly.hashCode ^ kind.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RsShareDir &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          readOnly == other.readOnly &&
+          kind == other.kind;
+}
+
+@freezed
+sealed class RsShareDownloadEvent with _$RsShareDownloadEvent {
+  const RsShareDownloadEvent._();
+
+  /// Bytes received so far plus the fraction of `total_size` (0.0 to 1.0).
+  /// Throttled.
+  const factory RsShareDownloadEvent.progress({
+    required BigInt received,
+    required double progress,
+  }) = RsShareDownloadEvent_Progress;
+
+  /// The file is complete and written to the target.
+  const factory RsShareDownloadEvent.finished() = RsShareDownloadEvent_Finished;
+
+  /// The download failed. Always the last event of the stream.
+  const factory RsShareDownloadEvent.failed({
+    required RsHttpClientError error,
+  }) = RsShareDownloadEvent_Failed;
+}
+
+/// One row of a remote directory listing.
+class RsShareEntry {
+  final String name;
+  final bool isDir;
+  final BigInt size;
+
+  /// Unix seconds; `0` when the peer's filesystem does not report one.
+  final PlatformInt64 mtime;
+  final String relPath;
+
+  const RsShareEntry({
+    required this.name,
+    required this.isDir,
+    required this.size,
+    required this.mtime,
+    required this.relPath,
+  });
+
+  @override
+  int get hashCode => name.hashCode ^ isDir.hashCode ^ size.hashCode ^ mtime.hashCode ^ relPath.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RsShareEntry &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          isDir == other.isDir &&
+          size == other.size &&
+          mtime == other.mtime &&
+          relPath == other.relPath;
+}
+
+/// Body of one remote directory listing.
+class RsShareListPage {
+  final String directoryId;
+  final String subPath;
+  final List<RsShareEntry> entries;
+  final String? nextCursor;
+
+  const RsShareListPage({
+    required this.directoryId,
+    required this.subPath,
+    required this.entries,
+    this.nextCursor,
+  });
+
+  @override
+  int get hashCode => directoryId.hashCode ^ subPath.hashCode ^ entries.hashCode ^ nextCursor.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RsShareListPage &&
+          runtimeType == other.runtimeType &&
+          directoryId == other.directoryId &&
+          subPath == other.subPath &&
+          entries == other.entries &&
+          nextCursor == other.nextCursor;
 }
 
 @freezed

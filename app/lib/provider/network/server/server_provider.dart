@@ -9,12 +9,14 @@ import 'package:localsend_app/provider/network/server/controller/receive_control
 import 'package:localsend_app/provider/network/server/controller/send_controller.dart';
 import 'package:localsend_app/provider/network/server/server_utils.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/provider/share/share_provider.dart';
 import 'package:localsend_app/util/alias_generator.dart';
 import 'package:localsend_app/util/native/web_pages_loader.dart';
 import 'package:localsend_isolates/constants.dart';
 import 'package:localsend_isolates/isolate.dart';
 import 'package:localsend_isolates/model/dto/multicast_dto.dart';
-import 'package:localsend_isolates/rust/api/server.dart' show WebI18n, WebMode, WebParams;
+import 'package:localsend_isolates/model/share.dart' show ShareKind;
+import 'package:localsend_isolates/rust/api/server.dart' show RsShareSnapshot, RsSharedDirectory, RsTrustedDevice, WebI18n, WebMode, WebParams;
 import 'package:localsend_isolates/util/rust.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -179,6 +181,7 @@ class ServerService extends Notifier<ServerState?> {
               pages: customWebPages,
             ),
             showToken: settings.showToken,
+            shareSnapshot: _currentShareSnapshot(),
           ),
         );
 
@@ -448,5 +451,35 @@ class ServerService extends Notifier<ServerState?> {
             download: download,
           ),
         );
+  }
+
+  /// Snapshot of the local shared-directory state handed to the Rust HTTP
+  /// server at startup. Always sent, even when empty, so the Rust registry
+  /// exists from the first second and later `update_share` calls take effect.
+  RsShareSnapshot _currentShareSnapshot() {
+    final snap = ref.read(shareProvider);
+    return RsShareSnapshot(
+      directories: [
+        for (final d in snap.directories)
+          RsSharedDirectory(
+            id: d.id,
+            name: d.name,
+            root: d.root,
+            kind: d.kind == ShareKind.sessionOnly ? 'sessionOnly' : 'longTerm',
+            readOnly: d.readOnly,
+            enabled: d.enabled,
+            addedAtUnixSecs: BigInt.from(d.addedAt.millisecondsSinceEpoch ~/ 1000),
+          ),
+      ],
+      trustedDevices: [
+        for (final t in snap.trustedDevices)
+          RsTrustedDevice(
+            fingerprint: t.fingerprint,
+            alias: t.alias,
+            addedAtUnixSecs: BigInt.from(t.addedAt.millisecondsSinceEpoch ~/ 1000),
+            lastSeenAtUnixSecs: t.lastSeenAt == null ? null : BigInt.from(t.lastSeenAt!.millisecondsSinceEpoch ~/ 1000),
+          ),
+      ],
+    );
   }
 }

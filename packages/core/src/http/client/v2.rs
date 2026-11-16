@@ -12,7 +12,7 @@ use tokio_util::sync::CancellationToken;
 
 /// HTTP client for LocalSend Protocol v2.2.
 pub struct LsHttpClientV2 {
-    client: reqwest::Client,
+    pub(super) client: reqwest::Client,
 }
 
 impl LsHttpClientV2 {

@@ -10,7 +10,7 @@ import 'package:localsend_isolates/rust/frb_generated.dart';
 
 part 'server.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `handle_server_event`, `handle_web_event`, `recv_opt`, `resolve_file_content`, `resolve_upload_target`, `stop`
+// These functions are ignored because they are not marked as `pub`: `handle_server_event`, `handle_web_event`, `into_registry`, `recv_opt`, `resolve_file_content`, `resolve_upload_target`, `stop`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ServerInstance`
 
 /// Starts the HTTP server on the given port (IPv4 and IPv6).
@@ -38,6 +38,7 @@ Future<RsHttpServer> startServer({
   required bool verifyChecksums,
   required WebParams web,
   String? showToken,
+  RsShareSnapshot? shareSnapshot,
 }) => RustLib.instance.api.crateApiServerStartServer(
   port: port,
   tls: tls,
@@ -50,6 +51,7 @@ Future<RsHttpServer> startServer({
   verifyChecksums: verifyChecksums,
   web: web,
   showToken: showToken,
+  shareSnapshot: shareSnapshot,
 );
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RsHttpServer>>
@@ -76,6 +78,10 @@ abstract class RsHttpServer implements RustOpaqueInterface {
   /// The upload request fails with an error response and the file is marked
   /// as failed. Does nothing if the upload was already answered.
   Future<void> failFileUpload({required String sessionId, required String fileId});
+
+  /// Current shared-directory view; `None` when the feature is disabled.
+  /// Handy after a restart / hot reload to hydrate the Flutter UI.
+  Future<RsShareSnapshot?> getShareSnapshot();
 
   /// Emits server events until the server is stopped.
   /// Can only be listened to once.
@@ -121,6 +127,12 @@ abstract class RsHttpServer implements RustOpaqueInterface {
   /// Stops the server.
   /// Returns after the listeners are closed, so the port can be bound again.
   Future<void> stop();
+
+  /// Hot-swaps the shared-directory state the HTTP `share::*`
+  /// handlers already see through `Arc<ShareRegistry>`. No server restart is
+  /// needed. Silently no-ops when the feature was disabled at start
+  /// (`start_server` received `share_snapshot = None`).
+  Future<void> updateShare({required RsShareSnapshot snapshot});
 }
 
 class RegisterDtoV2 {
@@ -262,6 +274,92 @@ sealed class RsServerEvent with _$RsServerEvent {
     /// Description of the failure.
     required String error,
   }) = RsServerEvent_ListenerFailed;
+}
+
+/// Aggregate view pushed into / pulled from the FRB boundary.
+class RsShareSnapshot {
+  final List<RsSharedDirectory> directories;
+  final List<RsTrustedDevice> trustedDevices;
+
+  const RsShareSnapshot({
+    required this.directories,
+    required this.trustedDevices,
+  });
+
+  @override
+  int get hashCode => directories.hashCode ^ trustedDevices.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RsShareSnapshot && runtimeType == other.runtimeType && directories == other.directories && trustedDevices == other.trustedDevices;
+}
+
+/// A shared directory as seen from Dart.
+class RsSharedDirectory {
+  final String id;
+  final String name;
+  final String root;
+
+  /// `"longTerm"` or `"sessionOnly"`.
+  final String kind;
+  final bool readOnly;
+  final bool enabled;
+  final BigInt addedAtUnixSecs;
+
+  const RsSharedDirectory({
+    required this.id,
+    required this.name,
+    required this.root,
+    required this.kind,
+    required this.readOnly,
+    required this.enabled,
+    required this.addedAtUnixSecs,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ root.hashCode ^ kind.hashCode ^ readOnly.hashCode ^ enabled.hashCode ^ addedAtUnixSecs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RsSharedDirectory &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          root == other.root &&
+          kind == other.kind &&
+          readOnly == other.readOnly &&
+          enabled == other.enabled &&
+          addedAtUnixSecs == other.addedAtUnixSecs;
+}
+
+/// A trusted peer as seen from Dart.
+class RsTrustedDevice {
+  final String fingerprint;
+  final String alias;
+  final BigInt addedAtUnixSecs;
+  final BigInt? lastSeenAtUnixSecs;
+
+  const RsTrustedDevice({
+    required this.fingerprint,
+    required this.alias,
+    required this.addedAtUnixSecs,
+    this.lastSeenAtUnixSecs,
+  });
+
+  @override
+  int get hashCode => fingerprint.hashCode ^ alias.hashCode ^ addedAtUnixSecs.hashCode ^ lastSeenAtUnixSecs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RsTrustedDevice &&
+          runtimeType == other.runtimeType &&
+          fingerprint == other.fingerprint &&
+          alias == other.alias &&
+          addedAtUnixSecs == other.addedAtUnixSecs &&
+          lastSeenAtUnixSecs == other.lastSeenAtUnixSecs;
 }
 
 enum SessionEndReasonV2 {

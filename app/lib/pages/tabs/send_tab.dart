@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/send_mode.dart';
 import 'package:localsend_app/pages/device_details_page.dart';
@@ -9,8 +8,6 @@ import 'package:localsend_app/pages/tabs/send_tab_vm.dart';
 import 'package:localsend_app/pages/troubleshoot_page.dart';
 import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/file_transfer_provider.dart';
-import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
-import 'package:localsend_app/provider/network/scan_facade.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
@@ -28,7 +25,7 @@ import 'package:localsend_app/widget/opacity_slideshow.dart';
 import 'package:localsend_app/widget/responsive_builder.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:localsend_app/widget/responsive_wrap_view.dart';
-import 'package:localsend_app/widget/rotating_widget.dart';
+import 'package:localsend_app/widget/scan_button.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:localsend_isolates/model/session_status.dart';
 import 'package:localsend_isolates/util/file_size_helper.dart';
@@ -177,7 +174,7 @@ class SendTab extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                _ScanButton(
+                ScanButton(
                   ips: vm.localIps,
                 ),
                 Tooltip(
@@ -273,134 +270,6 @@ class SendTab extends StatelessWidget {
   }
 }
 
-/// A button that opens a popup menu to select [T].
-/// This is used for the scan button and the send mode button.
-class _CircularPopupButton<T> extends StatelessWidget {
-  final String tooltip;
-  final PopupMenuItemBuilder<T> itemBuilder;
-  final PopupMenuItemSelected<T>? onSelected;
-  final Widget child;
-
-  const _CircularPopupButton({
-    required this.tooltip,
-    required this.onSelected,
-    required this.itemBuilder,
-    required this.child,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(9999),
-      child: Material(
-        type: MaterialType.transparency,
-        child: DividerTheme(
-          data: DividerThemeData(
-            color: Theme.of(context).brightness == Brightness.light ? Colors.teal.shade100 : Colors.grey.shade700,
-          ),
-          child: PopupMenuButton(
-            offset: const Offset(0, 40),
-            onSelected: onSelected,
-            tooltip: tooltip,
-            itemBuilder: itemBuilder,
-            child: child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The scan button that uses [_CircularPopupButton].
-class _ScanButton extends StatelessWidget {
-  final List<String> ips;
-
-  const _ScanButton({
-    required this.ips,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final (scanningFavorites, scanningIps) = context.ref.watch(nearbyDevicesProvider.select((s) => (s.runningFavoriteScan, s.runningIps)));
-    final animations = context.ref.watch(animationProvider);
-
-    final spinning = (scanningFavorites || scanningIps.isNotEmpty) && animations;
-    final iconColor = !animations && scanningIps.isNotEmpty ? Theme.of(context).colorScheme.warning : null;
-
-    if (ips.length <= StartSmartScan.maxInterfaces) {
-      return Tooltip(
-        message: t.sendTab.scan,
-        child: RotatingWidget(
-          duration: const Duration(seconds: 2),
-          spinning: spinning,
-          reverse: true,
-          child: CustomIconButton(
-            onPressed: () async {
-              context.redux(nearbyDevicesProvider).dispatch(ClearFoundDevicesAction());
-              await context.global.dispatchAsync(StartSmartScan());
-            },
-            child: Icon(Icons.sync, color: iconColor),
-          ),
-        ),
-      );
-    }
-
-    return _CircularPopupButton(
-      tooltip: t.sendTab.scan,
-      onSelected: (ip) async {
-        context.redux(nearbyDevicesProvider).dispatch(ClearFoundDevicesAction());
-        await context.global.dispatchAsync(StartLegacySubnetScan(subnets: [ip]));
-      },
-      itemBuilder: (_) {
-        return [
-          ...ips.map(
-            (ip) => PopupMenuItem(
-              value: ip,
-              padding: const EdgeInsets.only(left: 12, right: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _RotatingSyncIcon(ip),
-                  const SizedBox(width: 10),
-                  Text(ip),
-                ],
-              ),
-            ),
-          ),
-        ];
-      },
-      child: RotatingWidget(
-        duration: const Duration(seconds: 2),
-        spinning: spinning,
-        reverse: true,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Icon(Icons.sync, color: iconColor),
-        ),
-      ),
-    );
-  }
-}
-
-/// A separate widget, so it gets the latest data from provider.
-class _RotatingSyncIcon extends StatelessWidget {
-  final String ip;
-
-  const _RotatingSyncIcon(this.ip);
-
-  @override
-  Widget build(BuildContext context) {
-    final scanningIps = context.ref.watch(nearbyDevicesProvider.select((s) => s.runningIps));
-    return RotatingWidget(
-      duration: const Duration(seconds: 2),
-      spinning: scanningIps.contains(ip),
-      reverse: true,
-      child: const Icon(Icons.sync),
-    );
-  }
-}
-
 class _SendModeButton extends StatelessWidget {
   final void Function(SendMode mode) onSelect;
 
@@ -408,7 +277,7 @@ class _SendModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CircularPopupButton<int>(
+    return CircularPopupButton<int>(
       tooltip: t.sendTab.sendMode,
       onSelected: (mode) async {
         switch (mode) {

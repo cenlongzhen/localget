@@ -25,6 +25,7 @@ class HttpServerService {
     required bool verifyChecksums,
     required WebParams web,
     required String? showToken,
+    RsShareSnapshot? shareSnapshot,
   }) async {
     if (_server != null) {
       throw StateError('Server already running');
@@ -42,9 +43,21 @@ class HttpServerService {
       verifyChecksums: verifyChecksums,
       web: web,
       showToken: showToken,
+      shareSnapshot: shareSnapshot,
     );
     _server = server;
     return server.listen();
+  }
+
+  /// Push a fresh shared-directory snapshot into the running Rust server.
+  /// No-op when the server is not running (callers do not need to guard for
+  /// that case).
+  Future<void> updateShare(RsShareSnapshot snapshot) async {
+    final server = _server;
+    if (server == null) {
+      return;
+    }
+    await server.updateShare(snapshot: snapshot);
   }
 
   /// Answers a pending prepare-upload request.

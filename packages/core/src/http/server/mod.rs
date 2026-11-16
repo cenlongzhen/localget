@@ -2,6 +2,7 @@ pub mod common;
 mod connection_limit;
 pub mod internal;
 mod peer_ip;
+pub(crate) mod share;
 pub mod v2;
 pub mod v3;
 pub mod web;
@@ -13,6 +14,7 @@ use crate::http::server::internal::{InternalConfig, InternalState};
 use crate::http::server::v2::ServerEventV2;
 use crate::http::server::web::{WebConfig, WebShare};
 use crate::http::state::ClientInfo;
+use crate::share::ShareRegistry;
 use common::client_cert_verifier::CustomClientCertVerifier;
 use common::error::AppError;
 use common::response;
@@ -90,6 +92,11 @@ pub struct AppState {
 
     /// Limits the connections being served, shared by the IPv4 and IPv6 listeners.
     connection_limiter: Arc<ConnectionLimiter>,
+
+    /// Registry driving `GET /api/localsend/v2/share/*` endpoints. `None`
+    /// disables the whole feature on this server instance. Hot-swappable:
+    /// the app may push new snapshots without restarting the server.
+    pub(crate) share: Option<Arc<ShareRegistry>>,
 }
 
 impl AppState {
@@ -98,6 +105,7 @@ impl AppState {
         internal_config: Option<InternalConfig>,
         v2_config: Option<ServerConfigV2>,
         web_config: WebConfig,
+        share: Option<Arc<ShareRegistry>>,
     ) -> Self {
         let v2 = v2_config.map(|config| {
             Arc::new(V2State {
@@ -123,6 +131,7 @@ impl AppState {
             ))),
             v2,
             connection_limiter: ConnectionLimiter::new(MAX_CONNECTIONS, MAX_CONNECTIONS_PER_IP),
+            share,
         }
     }
 }
@@ -223,13 +232,41 @@ pub async fn start_with_port(
     web_config: WebConfig,
     stop_rx: oneshot::Receiver<()>,
 ) -> anyhow::Result<ServerHandle> {
+    start_with_port_sharing(
+        port,
+        tls_config,
+        info,
+        internal_config,
+        v2_config,
+        web_config,
+        None,
+        stop_rx,
+    )
+    .await
+}
+
+/// Same as [`start_with_port`] but additionally serves the shared-directory
+/// endpoints driven by the supplied [`ShareRegistry`]. Passing `None` keeps
+/// `/api/localsend/v2/share/*` at 404 (identical to the base function).
+///
+/// Kept separate so existing callers of [`start_with_port`] need no changes.
+pub async fn start_with_port_sharing(
+    port: u16,
+    tls_config: Option<TlsConfig>,
+    info: ClientInfo,
+    internal_config: Option<InternalConfig>,
+    v2_config: Option<ServerConfigV2>,
+    web_config: WebConfig,
+    share: Option<Arc<ShareRegistry>>,
+    stop_rx: oneshot::Receiver<()>,
+) -> anyhow::Result<ServerHandle> {
     // Installed before returning, so that a client built right after (which
     // skips the install when a provider exists) does not race the accept task.
     let _ = rustls::crypto::ring::default_provider().install_default();
 
     let ipv4_socket_addr = SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), port);
     let info = Arc::new(Mutex::new(info));
-    let state = AppState::new(info.clone(), internal_config, v2_config, web_config);
+    let state = AppState::new(info.clone(), internal_config, v2_config, web_config, share);
 
     let ipv4_listener = tokio::net::TcpListener::bind(ipv4_socket_addr).await?;
     // With port 0, the IPv6 listener must reuse the port the IPv4 listener got.
@@ -674,6 +711,15 @@ async fn handle_request_inner(mut req: Request<Incoming>) -> Result<Response<Box
         }
         // The versioned path is retained for compatibility, but this endpoint is internal.
         (&Method::POST, "/api/localsend/v2/show") => internal::show(req, state).await,
+        (&Method::GET, "/api/localsend/v2/share/dirs") => {
+            Ok(share::dirs(state, client_info).await?.into_response())
+        }
+        (&Method::GET, "/api/localsend/v2/share/list") => {
+            Ok(share::list(req, state, client_info).await?.into_response())
+        }
+        (&Method::GET, "/api/localsend/v2/share/download") => {
+            share::download(req, state, client_info).await
+        }
         (&Method::POST, "/api/localsend/v3/nonce") => {
             Ok(v3::nonce_exchange(req.into_body(), state, client_info)
                 .await?

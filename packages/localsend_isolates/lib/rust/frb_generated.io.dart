@@ -201,6 +201,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RustStreamSink<RsServerEvent> dco_decode_StreamSink_rs_server_event_Sse(dynamic raw);
 
   @protected
+  RustStreamSink<RsShareDownloadEvent> dco_decode_StreamSink_rs_share_download_event_Sse(dynamic raw);
+
+  @protected
   RustStreamSink<RsStoredDevice> dco_decode_StreamSink_rs_stored_device_Sse(dynamic raw);
 
   @protected
@@ -275,6 +278,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RsHttpClientError dco_decode_box_autoadd_rs_http_client_error(dynamic raw);
 
   @protected
+  RsShareSnapshot dco_decode_box_autoadd_rs_share_snapshot(dynamic raw);
+
+  @protected
   RTCSendFileResponse dco_decode_box_autoadd_rtc_send_file_response(dynamic raw);
 
   @protected
@@ -282,6 +288,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
   WebParams dco_decode_box_autoadd_web_params(dynamic raw);
@@ -317,6 +326,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
   PlatformInt64 dco_decode_isize(dynamic raw);
 
   @protected
@@ -350,6 +362,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<RsDeviceLog> dco_decode_list_rs_device_log(dynamic raw);
 
   @protected
+  List<RsShareDir> dco_decode_list_rs_share_dir(dynamic raw);
+
+  @protected
+  List<RsShareEntry> dco_decode_list_rs_share_entry(dynamic raw);
+
+  @protected
+  List<RsSharedDirectory> dco_decode_list_rs_shared_directory(dynamic raw);
+
+  @protected
+  List<RsTrustedDevice> dco_decode_list_rs_trusted_device(dynamic raw);
+
+  @protected
   LsHttpClientVersion dco_decode_ls_http_client_version(dynamic raw);
 
   @protected
@@ -378,10 +402,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PrepareUploadResponseDto? dco_decode_opt_box_autoadd_prepare_upload_response_dto(dynamic raw);
 
   @protected
+  RsShareSnapshot? dco_decode_opt_box_autoadd_rs_share_snapshot(dynamic raw);
+
+  @protected
   TlsConfig? dco_decode_opt_box_autoadd_tls_config(dynamic raw);
 
   @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
   List<String>? dco_decode_opt_list_String(dynamic raw);
@@ -450,7 +480,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RsServerEvent dco_decode_rs_server_event(dynamic raw);
 
   @protected
+  RsShareDir dco_decode_rs_share_dir(dynamic raw);
+
+  @protected
+  RsShareDownloadEvent dco_decode_rs_share_download_event(dynamic raw);
+
+  @protected
+  RsShareEntry dco_decode_rs_share_entry(dynamic raw);
+
+  @protected
+  RsShareListPage dco_decode_rs_share_list_page(dynamic raw);
+
+  @protected
+  RsShareSnapshot dco_decode_rs_share_snapshot(dynamic raw);
+
+  @protected
+  RsSharedDirectory dco_decode_rs_shared_directory(dynamic raw);
+
+  @protected
   RsStoredDevice dco_decode_rs_stored_device(dynamic raw);
+
+  @protected
+  RsTrustedDevice dco_decode_rs_trusted_device(dynamic raw);
 
   @protected
   RsUploadEvent dco_decode_rs_upload_event(dynamic raw);
@@ -665,6 +716,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RustStreamSink<RsServerEvent> sse_decode_StreamSink_rs_server_event_Sse(SseDeserializer deserializer);
 
   @protected
+  RustStreamSink<RsShareDownloadEvent> sse_decode_StreamSink_rs_share_download_event_Sse(SseDeserializer deserializer);
+
+  @protected
   RustStreamSink<RsStoredDevice> sse_decode_StreamSink_rs_stored_device_Sse(SseDeserializer deserializer);
 
   @protected
@@ -739,6 +793,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RsHttpClientError sse_decode_box_autoadd_rs_http_client_error(SseDeserializer deserializer);
 
   @protected
+  RsShareSnapshot sse_decode_box_autoadd_rs_share_snapshot(SseDeserializer deserializer);
+
+  @protected
   RTCSendFileResponse sse_decode_box_autoadd_rtc_send_file_response(SseDeserializer deserializer);
 
   @protected
@@ -746,6 +803,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
   WebParams sse_decode_box_autoadd_web_params(SseDeserializer deserializer);
@@ -781,6 +841,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
   PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
 
   @protected
@@ -814,6 +877,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<RsDeviceLog> sse_decode_list_rs_device_log(SseDeserializer deserializer);
 
   @protected
+  List<RsShareDir> sse_decode_list_rs_share_dir(SseDeserializer deserializer);
+
+  @protected
+  List<RsShareEntry> sse_decode_list_rs_share_entry(SseDeserializer deserializer);
+
+  @protected
+  List<RsSharedDirectory> sse_decode_list_rs_shared_directory(SseDeserializer deserializer);
+
+  @protected
+  List<RsTrustedDevice> sse_decode_list_rs_trusted_device(SseDeserializer deserializer);
+
+  @protected
   LsHttpClientVersion sse_decode_ls_http_client_version(SseDeserializer deserializer);
 
   @protected
@@ -844,10 +919,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PrepareUploadResponseDto? sse_decode_opt_box_autoadd_prepare_upload_response_dto(SseDeserializer deserializer);
 
   @protected
+  RsShareSnapshot? sse_decode_opt_box_autoadd_rs_share_snapshot(SseDeserializer deserializer);
+
+  @protected
   TlsConfig? sse_decode_opt_box_autoadd_tls_config(SseDeserializer deserializer);
 
   @protected
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
@@ -916,7 +997,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RsServerEvent sse_decode_rs_server_event(SseDeserializer deserializer);
 
   @protected
+  RsShareDir sse_decode_rs_share_dir(SseDeserializer deserializer);
+
+  @protected
+  RsShareDownloadEvent sse_decode_rs_share_download_event(SseDeserializer deserializer);
+
+  @protected
+  RsShareEntry sse_decode_rs_share_entry(SseDeserializer deserializer);
+
+  @protected
+  RsShareListPage sse_decode_rs_share_list_page(SseDeserializer deserializer);
+
+  @protected
+  RsShareSnapshot sse_decode_rs_share_snapshot(SseDeserializer deserializer);
+
+  @protected
+  RsSharedDirectory sse_decode_rs_shared_directory(SseDeserializer deserializer);
+
+  @protected
   RsStoredDevice sse_decode_rs_stored_device(SseDeserializer deserializer);
+
+  @protected
+  RsTrustedDevice sse_decode_rs_trusted_device(SseDeserializer deserializer);
 
   @protected
   RsUploadEvent sse_decode_rs_upload_event(SseDeserializer deserializer);
@@ -1175,6 +1277,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_StreamSink_rs_server_event_Sse(RustStreamSink<RsServerEvent> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_StreamSink_rs_share_download_event_Sse(RustStreamSink<RsShareDownloadEvent> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_StreamSink_rs_stored_device_Sse(RustStreamSink<RsStoredDevice> self, SseSerializer serializer);
 
   @protected
@@ -1250,6 +1355,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_rs_http_client_error(RsHttpClientError self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_rs_share_snapshot(RsShareSnapshot self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_rtc_send_file_response(RTCSendFileResponse self, SseSerializer serializer);
 
   @protected
@@ -1257,6 +1365,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_web_params(WebParams self, SseSerializer serializer);
@@ -1292,6 +1403,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
   void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
 
   @protected
@@ -1325,6 +1439,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_rs_device_log(List<RsDeviceLog> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_rs_share_dir(List<RsShareDir> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_rs_share_entry(List<RsShareEntry> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_rs_shared_directory(List<RsSharedDirectory> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_rs_trusted_device(List<RsTrustedDevice> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_ls_http_client_version(LsHttpClientVersion self, SseSerializer serializer);
 
   @protected
@@ -1355,10 +1481,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_prepare_upload_response_dto(PrepareUploadResponseDto? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_rs_share_snapshot(RsShareSnapshot? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_tls_config(TlsConfig? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
@@ -1428,7 +1560,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_rs_server_event(RsServerEvent self, SseSerializer serializer);
 
   @protected
+  void sse_encode_rs_share_dir(RsShareDir self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_rs_share_download_event(RsShareDownloadEvent self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_rs_share_entry(RsShareEntry self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_rs_share_list_page(RsShareListPage self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_rs_share_snapshot(RsShareSnapshot self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_rs_shared_directory(RsSharedDirectory self, SseSerializer serializer);
+
+  @protected
   void sse_encode_rs_stored_device(RsStoredDevice self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_rs_trusted_device(RsTrustedDevice self, SseSerializer serializer);
 
   @protected
   void sse_encode_rs_upload_event(RsUploadEvent self, SseSerializer serializer);

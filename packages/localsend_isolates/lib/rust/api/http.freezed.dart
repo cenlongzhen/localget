@@ -522,6 +522,347 @@ as String,
 }
 
 /// @nodoc
+mixin _$RsShareDownloadEvent {
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RsShareDownloadEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'RsShareDownloadEvent()';
+}
+
+
+}
+
+/// @nodoc
+class $RsShareDownloadEventCopyWith<$Res>  {
+$RsShareDownloadEventCopyWith(RsShareDownloadEvent _, $Res Function(RsShareDownloadEvent) __);
+}
+
+
+/// Adds pattern-matching-related methods to [RsShareDownloadEvent].
+extension RsShareDownloadEventPatterns on RsShareDownloadEvent {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( RsShareDownloadEvent_Progress value)?  progress,TResult Function( RsShareDownloadEvent_Finished value)?  finished,TResult Function( RsShareDownloadEvent_Failed value)?  failed,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case RsShareDownloadEvent_Progress() when progress != null:
+return progress(_that);case RsShareDownloadEvent_Finished() when finished != null:
+return finished(_that);case RsShareDownloadEvent_Failed() when failed != null:
+return failed(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( RsShareDownloadEvent_Progress value)  progress,required TResult Function( RsShareDownloadEvent_Finished value)  finished,required TResult Function( RsShareDownloadEvent_Failed value)  failed,}){
+final _that = this;
+switch (_that) {
+case RsShareDownloadEvent_Progress():
+return progress(_that);case RsShareDownloadEvent_Finished():
+return finished(_that);case RsShareDownloadEvent_Failed():
+return failed(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( RsShareDownloadEvent_Progress value)?  progress,TResult? Function( RsShareDownloadEvent_Finished value)?  finished,TResult? Function( RsShareDownloadEvent_Failed value)?  failed,}){
+final _that = this;
+switch (_that) {
+case RsShareDownloadEvent_Progress() when progress != null:
+return progress(_that);case RsShareDownloadEvent_Finished() when finished != null:
+return finished(_that);case RsShareDownloadEvent_Failed() when failed != null:
+return failed(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( BigInt received,  double progress)?  progress,TResult Function()?  finished,TResult Function( RsHttpClientError error)?  failed,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case RsShareDownloadEvent_Progress() when progress != null:
+return progress(_that.received,_that.progress);case RsShareDownloadEvent_Finished() when finished != null:
+return finished();case RsShareDownloadEvent_Failed() when failed != null:
+return failed(_that.error);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( BigInt received,  double progress)  progress,required TResult Function()  finished,required TResult Function( RsHttpClientError error)  failed,}) {final _that = this;
+switch (_that) {
+case RsShareDownloadEvent_Progress():
+return progress(_that.received,_that.progress);case RsShareDownloadEvent_Finished():
+return finished();case RsShareDownloadEvent_Failed():
+return failed(_that.error);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( BigInt received,  double progress)?  progress,TResult? Function()?  finished,TResult? Function( RsHttpClientError error)?  failed,}) {final _that = this;
+switch (_that) {
+case RsShareDownloadEvent_Progress() when progress != null:
+return progress(_that.received,_that.progress);case RsShareDownloadEvent_Finished() when finished != null:
+return finished();case RsShareDownloadEvent_Failed() when failed != null:
+return failed(_that.error);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class RsShareDownloadEvent_Progress extends RsShareDownloadEvent {
+  const RsShareDownloadEvent_Progress({required this.received, required this.progress}): super._();
+  
+
+ final  BigInt received;
+ final  double progress;
+
+/// Create a copy of RsShareDownloadEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RsShareDownloadEvent_ProgressCopyWith<RsShareDownloadEvent_Progress> get copyWith => _$RsShareDownloadEvent_ProgressCopyWithImpl<RsShareDownloadEvent_Progress>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RsShareDownloadEvent_Progress&&(identical(other.received, received) || other.received == received)&&(identical(other.progress, progress) || other.progress == progress));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,received,progress);
+
+@override
+String toString() {
+  return 'RsShareDownloadEvent.progress(received: $received, progress: $progress)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RsShareDownloadEvent_ProgressCopyWith<$Res> implements $RsShareDownloadEventCopyWith<$Res> {
+  factory $RsShareDownloadEvent_ProgressCopyWith(RsShareDownloadEvent_Progress value, $Res Function(RsShareDownloadEvent_Progress) _then) = _$RsShareDownloadEvent_ProgressCopyWithImpl;
+@useResult
+$Res call({
+ BigInt received, double progress
+});
+
+
+
+
+}
+/// @nodoc
+class _$RsShareDownloadEvent_ProgressCopyWithImpl<$Res>
+    implements $RsShareDownloadEvent_ProgressCopyWith<$Res> {
+  _$RsShareDownloadEvent_ProgressCopyWithImpl(this._self, this._then);
+
+  final RsShareDownloadEvent_Progress _self;
+  final $Res Function(RsShareDownloadEvent_Progress) _then;
+
+/// Create a copy of RsShareDownloadEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? received = null,Object? progress = null,}) {
+  return _then(RsShareDownloadEvent_Progress(
+received: null == received ? _self.received : received // ignore: cast_nullable_to_non_nullable
+as BigInt,progress: null == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class RsShareDownloadEvent_Finished extends RsShareDownloadEvent {
+  const RsShareDownloadEvent_Finished(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RsShareDownloadEvent_Finished);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'RsShareDownloadEvent.finished()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class RsShareDownloadEvent_Failed extends RsShareDownloadEvent {
+  const RsShareDownloadEvent_Failed({required this.error}): super._();
+  
+
+ final  RsHttpClientError error;
+
+/// Create a copy of RsShareDownloadEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RsShareDownloadEvent_FailedCopyWith<RsShareDownloadEvent_Failed> get copyWith => _$RsShareDownloadEvent_FailedCopyWithImpl<RsShareDownloadEvent_Failed>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RsShareDownloadEvent_Failed&&(identical(other.error, error) || other.error == error));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,error);
+
+@override
+String toString() {
+  return 'RsShareDownloadEvent.failed(error: $error)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RsShareDownloadEvent_FailedCopyWith<$Res> implements $RsShareDownloadEventCopyWith<$Res> {
+  factory $RsShareDownloadEvent_FailedCopyWith(RsShareDownloadEvent_Failed value, $Res Function(RsShareDownloadEvent_Failed) _then) = _$RsShareDownloadEvent_FailedCopyWithImpl;
+@useResult
+$Res call({
+ RsHttpClientError error
+});
+
+
+$RsHttpClientErrorCopyWith<$Res> get error;
+
+}
+/// @nodoc
+class _$RsShareDownloadEvent_FailedCopyWithImpl<$Res>
+    implements $RsShareDownloadEvent_FailedCopyWith<$Res> {
+  _$RsShareDownloadEvent_FailedCopyWithImpl(this._self, this._then);
+
+  final RsShareDownloadEvent_Failed _self;
+  final $Res Function(RsShareDownloadEvent_Failed) _then;
+
+/// Create a copy of RsShareDownloadEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? error = null,}) {
+  return _then(RsShareDownloadEvent_Failed(
+error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as RsHttpClientError,
+  ));
+}
+
+/// Create a copy of RsShareDownloadEvent
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RsHttpClientErrorCopyWith<$Res> get error {
+  
+  return $RsHttpClientErrorCopyWith<$Res>(_self.error, (value) {
+    return _then(_self.copyWith(error: value));
+  });
+}
+}
+
+/// @nodoc
 mixin _$RsUploadEvent {
 
 

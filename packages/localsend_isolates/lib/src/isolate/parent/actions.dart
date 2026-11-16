@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:localsend_isolates/model/device.dart';
-import 'package:localsend_isolates/rust/api/server.dart' show WebParams;
+import 'package:localsend_isolates/rust/api/server.dart' show RsShareSnapshot, WebParams;
 import 'package:localsend_isolates/src/isolate/child/discovery_isolate.dart';
 import 'package:localsend_isolates/src/isolate/child/server_isolate.dart';
 import 'package:localsend_isolates/src/isolate/child/upload_isolate.dart';
@@ -313,11 +313,16 @@ class IsolateHttpServerStartAction extends ReduxActionWithResult<IsolateControll
   /// application instance request this one to show itself. `null` disables it.
   final String? showToken;
 
+  /// Initial shared-directory snapshot; the Rust HTTP handler holds the
+  /// same `Arc<ShareRegistry>` for the whole lifetime of the server.
+  final RsShareSnapshot? shareSnapshot;
+
   IsolateHttpServerStartAction({
     required this.pin,
     required this.verifyChecksums,
     required this.web,
     required this.showToken,
+    this.shareSnapshot,
   });
 
   @override
@@ -335,9 +340,36 @@ class IsolateHttpServerStartAction extends ReduxActionWithResult<IsolateControll
           verifyChecksums: verifyChecksums,
           web: web,
           showToken: showToken,
+          shareSnapshot: shareSnapshot,
         ),
       ),
     );
+  }
+}
+
+/// Push a fresh shared-directory snapshot into the running HTTP server.
+/// Silently no-ops when the isolate is not alive yet — the next
+/// [IsolateHttpServerStartAction] will pick up the app's current view anyway.
+class IsolateHttpServerUpdateShareAction extends ReduxAction<IsolateController, ParentIsolateState> {
+  final RsShareSnapshot snapshot;
+
+  IsolateHttpServerUpdateShareAction({required this.snapshot});
+
+  @override
+  ParentIsolateState reduce() {
+    final connection = state.httpServer;
+    if (connection == null) {
+      return state;
+    }
+    connection.sendToIsolate(
+      SendToIsolateData(
+        syncState: null,
+        data: IsolateTask(
+          data: HttpServerUpdateShareTask(snapshot: snapshot),
+        ),
+      ),
+    );
+    return state;
   }
 }
 

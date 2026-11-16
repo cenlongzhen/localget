@@ -19,6 +19,12 @@ subprojects {
             project.android {
                 compileSdkVersion 36
                 buildToolsVersion "36.0.0"
+                // Pin every submodule to the NDK actually present under
+                // $ANDROID_HOME/ndk. Flutter's `flutter.ndkVersion` constant
+                // points to 28.2 which cannot be downloaded from
+                // dl.google.com in this network context; 30.0 is a valid
+                // successor supported by AGP 8.12.
+                ndkVersion = "30.0.15729638"
             }
         }
     }

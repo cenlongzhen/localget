@@ -43,8 +43,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
   // Translations
 
-  /// en: 'LocalSend'
-  String get appName => 'LocalSend';
+  /// en: 'LocalGet'
+  String get appName => 'LocalGet';
 
   late final Translations$general$en general = Translations$general$en.internal(_root);
   late final Translations$receiveTab$en receiveTab = Translations$receiveTab$en.internal(_root);
@@ -73,6 +73,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
   late final Translations$tray$en tray = Translations$tray$en.internal(_root);
   late final Translations$web$en web = Translations$web$en.internal(_root);
   late final Translations$assetPicker$en assetPicker = Translations$assetPicker$en.internal(_root);
+  late final Translations$homeTab$en homeTab = Translations$homeTab$en.internal(_root);
+  late final Translations$shareTab$en shareTab = Translations$shareTab$en.internal(_root);
 }
 
 // Path: general
@@ -945,6 +947,244 @@ class Translations$assetPicker$en {
 
   /// en: 'count'
   String get sUnitAssetCountLabel => 'count';
+}
+
+// Path: homeTab
+class Translations$homeTab$en {
+  Translations$homeTab$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Share'
+  String get title => 'Share';
+
+  /// en: 'Devices'
+  String get peers => 'Devices';
+
+  /// en: 'No device nearby shares files with this device yet.'
+  String get empty => 'No device nearby shares files with this device yet.';
+
+  /// en: '{count} nearby devices share files but have not trusted this device yet.'
+  String notTrusted({required Object count}) => '${count} nearby devices share files but have not trusted this device yet.';
+
+  /// en: 'Ask them to add you under "Share · Trusted devices".'
+  String get notTrustedHint => 'Ask them to add you under "Share · Trusted devices".';
+
+  /// en: 'This device does not share any directory.'
+  String get noDirectories => 'This device does not share any directory.';
+
+  /// en: 'This directory is empty.'
+  String get emptyDirectory => 'This directory is empty.';
+
+  /// en: 'Refresh'
+  String get refresh => 'Refresh';
+
+  /// en: 'Up'
+  String get up => 'Up';
+
+  /// en: 'Download'
+  String get download => 'Download';
+
+  /// en: 'Downloading {progress}%'
+  String downloading({required Object progress}) => 'Downloading ${progress}%';
+
+  /// en: 'Failed: {error}'
+  String downloadFailed({required Object error}) => 'Failed: ${error}';
+
+  /// en: 'Saved'
+  String get downloaded => 'Saved';
+
+  /// en: 'Read only'
+  String get readOnly => 'Read only';
+
+  /// en: 'Read and write'
+  String get readWrite => 'Read and write';
+
+  /// en: 'Could not read the directory: {error}'
+  String listFailed({required Object error}) => 'Could not read the directory: ${error}';
+
+  /// en: 'Load more'
+  String get loadMore => 'Load more';
+
+  /// en: 'History'
+  String get history => 'History';
+
+  /// en: 'Grid view'
+  String get viewGrid => 'Grid view';
+
+  /// en: 'List view'
+  String get viewList => 'List view';
+
+  /// en: 'Sort and filter'
+  String get sortBy => 'Sort and filter';
+
+  /// en: 'Name'
+  String get sortName => 'Name';
+
+  /// en: 'Type'
+  String get sortType => 'Type';
+
+  /// en: 'Size: small to large'
+  String get sortSizeAsc => 'Size: small to large';
+
+  /// en: 'Size: large to small'
+  String get sortSizeDesc => 'Size: large to small';
+
+  /// en: 'Newest first'
+  String get sortNewest => 'Newest first';
+
+  /// en: 'Oldest first'
+  String get sortOldest => 'Oldest first';
+
+  /// en: 'Images only'
+  String get filterImages => 'Images only';
+
+  /// en: 'Audio only'
+  String get filterAudio => 'Audio only';
+
+  /// en: 'Videos only'
+  String get filterVideos => 'Videos only';
+
+  /// en: 'Documents only'
+  String get filterDocuments => 'Documents only';
+
+  /// en: 'Installers only'
+  String get filterInstallers => 'Installers only';
+
+  /// en: 'Archives only'
+  String get filterArchives => 'Archives only';
+
+  /// en: 'No file matches this filter.'
+  String get filteredEmpty => 'No file matches this filter.';
+
+  /// en: 'Cancel download'
+  String get cancelDownload => 'Cancel download';
+}
+
+// Path: shareTab
+class Translations$shareTab$en {
+  Translations$shareTab$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Browse'
+  String get browse => 'Browse';
+
+  /// en: 'My shares'
+  String get local => 'My shares';
+
+  /// en: 'Trusted devices'
+  String get trustedDevices => 'Trusted devices';
+
+  /// en: 'Add'
+  String get add => 'Add';
+
+  /// en: 'No shared directory yet. Tap "Add" to mount one.'
+  String get emptyDirectories => 'No shared directory yet. Tap "Add" to mount one.';
+
+  /// en: 'No trusted device yet. Only trusted devices can browse your shared directories.'
+  String get emptyTrustedDevices => 'No trusted device yet. Only trusted devices can browse your shared directories.';
+
+  /// en: 'Directory name (public)'
+  String get directoryName => 'Directory name (public)';
+
+  /// en: 'Absolute local path'
+  String get directoryRoot => 'Absolute local path';
+
+  /// en: 'Tap the icon on the right to pick a directory'
+  String get directoryRootHint => 'Tap the icon on the right to pick a directory';
+
+  /// en: 'Pick directory'
+  String get pickDirectory => 'Pick directory';
+
+  /// en: 'Read only'
+  String get readOnly => 'Read only';
+
+  /// en: 'Trusted devices can browse and download, but cannot upload or delete'
+  String get readOnlyHint => 'Trusted devices can browse and download, but cannot upload or delete';
+
+  /// en: 'Always mounted'
+  String get longTerm => 'Always mounted';
+
+  /// en: 'This session'
+  String get sessionOnly => 'This session';
+
+  /// en: 'Add shared directory'
+  String get addDirectory => 'Add shared directory';
+
+  /// en: 'Pick a local directory so trusted devices can browse and download its files.'
+  String get addDirectoryHint => 'Pick a local directory so trusted devices can browse and download its files.';
+
+  /// en: 'Remove {name}?'
+  String removeDirectory({required Object name}) => 'Remove ${name}?';
+
+  /// en: 'This only unmounts it; files on disk are untouched.'
+  String get removeDirectoryHint => 'This only unmounts it; files on disk are untouched.';
+
+  /// en: 'Remove'
+  String get remove => 'Remove';
+
+  /// en: 'Session'
+  String get kindSession => 'Session';
+
+  /// en: 'Long term'
+  String get kindLongTerm => 'Long term';
+
+  /// en: 'Add trusted device'
+  String get addTrustedDevice => 'Add trusted device';
+
+  /// en: 'Pick a nearby device on the local network. Once trusted it can browse your shared directories.'
+  String get addTrustedDeviceHint => 'Pick a nearby device on the local network. Once trusted it can browse your shared directories.';
+
+  /// en: 'Trust {count}'
+  String addTrustedCount({required Object count}) => 'Trust ${count}';
+
+  /// en: 'Trusted'
+  String get alreadyTrusted => 'Trusted';
+
+  /// en: 'No other device found nearby'
+  String get noNearbyDevices => 'No other device found nearby';
+
+  /// en: 'Revoke'
+  String get revoke => 'Revoke';
+
+  /// en: 'Never accessed'
+  String get neverSeen => 'Never accessed';
+
+  /// en: 'Accessed just now'
+  String get seenJustNow => 'Accessed just now';
+
+  /// en: 'Accessed {count} min ago'
+  String seenMinutesAgo({required Object count}) => 'Accessed ${count} min ago';
+
+  /// en: 'Accessed {count} h ago'
+  String seenHoursAgo({required Object count}) => 'Accessed ${count} h ago';
+
+  /// en: 'Accessed {count} d ago'
+  String seenDaysAgo({required Object count}) => 'Accessed ${count} d ago';
+
+  /// en: 'Accessed {count} mo ago'
+  String seenMonthsAgo({required Object count}) => 'Accessed ${count} mo ago';
+
+  /// en: 'Full file access is required to share a folder. Allow "All files access" for this app, then pick the folder again.'
+  String get allFilesAccessRequired =>
+      'Full file access is required to share a folder. Allow "All files access" for this app, then pick the folder again.';
+
+  /// en: 'All'
+  String get trustAll => 'All';
+
+  /// en: 'Trusted'
+  String get trustTrusted => 'Trusted';
+
+  /// en: 'Untrusted'
+  String get trustUntrusted => 'Untrusted';
+
+  /// en: 'Edit shared directory'
+  String get editDirectory => 'Edit shared directory';
 }
 
 // Path: receiveTab.infoBox

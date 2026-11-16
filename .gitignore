@@ -1,10 +1,16 @@
+# Editors / tools
 .idea
+.qoder/
 
 # Pub workspace resolution output
 /.dart_tool/
 
 # Rust workspace build output
 /target/
+
+# Flutter / Gradle build output not covered by app/.gitignore
+/app/android/build/
+/app/android/.kotlin/
 
 # Linux AppImage
 /app/AppDir
@@ -22,3 +28,10 @@
 
 # Generated at build time by makepri (see support/scripts/compile_windows_msix_helper.ps1)
 /support/build/msix/content/resources.pri
+
+# Local build logs and release artifacts
+/support/logs/
+/dist/
+
+# Local design mockup of the shared-directory UI
+/LocalSend共享目录UI原型/

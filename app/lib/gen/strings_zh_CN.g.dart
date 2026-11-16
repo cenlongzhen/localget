@@ -40,7 +40,7 @@ class TranslationsZhCn extends Translations with BaseTranslations<AppLocale, Tra
 
   // Translations
   @override
-  String get appName => 'LocalSend';
+  String get appName => 'LocalGet';
   @override
   late final Translations$general$zh_CN general = Translations$general$zh_CN.internal(_root);
   @override
@@ -95,6 +95,10 @@ class TranslationsZhCn extends Translations with BaseTranslations<AppLocale, Tra
   late final Translations$web$zh_CN web = Translations$web$zh_CN.internal(_root);
   @override
   late final Translations$assetPicker$zh_CN assetPicker = Translations$assetPicker$zh_CN.internal(_root);
+  @override
+  late final Translations$homeTab$zh_CN homeTab = Translations$homeTab$zh_CN.internal(_root);
+  @override
+  late final Translations$shareTab$zh_CN shareTab = Translations$shareTab$zh_CN.internal(_root);
 }
 
 // Path: general
@@ -838,6 +842,170 @@ class Translations$assetPicker$zh_CN extends Translations$assetPicker$en {
   String get sNameDurationLabel => '时长';
   @override
   String get sUnitAssetCountLabel => '计数';
+}
+
+// Path: homeTab
+class Translations$homeTab$zh_CN extends Translations$homeTab$en {
+  Translations$homeTab$zh_CN.internal(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '共享';
+  @override
+  String get peers => '设备';
+  @override
+  String get empty => '附近暂时没有可浏览的共享设备。';
+  @override
+  String notTrusted({required Object count}) => '附近的 ${count} 台设备在共享文件，但还没信任本设备。';
+  @override
+  String get notTrustedHint => '请对方进入「共享 · 信任设备」添加你。';
+  @override
+  String get noDirectories => '这台设备没有共享目录';
+  @override
+  String get emptyDirectory => '这个目录是空的';
+  @override
+  String get refresh => '刷新';
+  @override
+  String get up => '上一级';
+  @override
+  String get download => '下载';
+  @override
+  String downloading({required Object progress}) => '下载中 ${progress}%';
+  @override
+  String downloadFailed({required Object error}) => '失败：${error}';
+  @override
+  String get downloaded => '已完成';
+  @override
+  String get readOnly => '只读';
+  @override
+  String get readWrite => '可读写';
+  @override
+  String listFailed({required Object error}) => '无法读取目录：${error}';
+  @override
+  String get loadMore => '加载更多';
+  @override
+  String get history => '历史记录';
+  @override
+  String get viewGrid => '宫格视图';
+  @override
+  String get viewList => '列表视图';
+  @override
+  String get sortBy => '筛选和排序';
+  @override
+  String get sortName => '按名称排序';
+  @override
+  String get sortType => '按类型排序';
+  @override
+  String get sortSizeAsc => '从小到大排序';
+  @override
+  String get sortSizeDesc => '从大到小排序';
+  @override
+  String get sortNewest => '从新到旧排序';
+  @override
+  String get sortOldest => '从旧到新排序';
+  @override
+  String get filterImages => '仅显示图片';
+  @override
+  String get filterAudio => '仅显示音频';
+  @override
+  String get filterVideos => '仅显示视频';
+  @override
+  String get filterDocuments => '仅显示文档';
+  @override
+  String get filterInstallers => '仅显示安装包';
+  @override
+  String get filterArchives => '仅显示压缩包';
+  @override
+  String get filteredEmpty => '没有符合筛选条件的文件。';
+  @override
+  String get cancelDownload => '取消下载';
+}
+
+// Path: shareTab
+class Translations$shareTab$zh_CN extends Translations$shareTab$en {
+  Translations$shareTab$zh_CN.internal(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get browse => '浏览共享';
+  @override
+  String get local => '本机共享';
+  @override
+  String get trustedDevices => '信任设备';
+  @override
+  String get add => '添加';
+  @override
+  String get emptyDirectories => '还没有共享目录，点击右下角「添加」挂载一个';
+  @override
+  String get emptyTrustedDevices => '还没有信任设备。只有被信任的设备能浏览你的共享目录。';
+  @override
+  String get directoryName => '目录名（对外展示）';
+  @override
+  String get directoryRoot => '本地绝对路径';
+  @override
+  String get directoryRootHint => '点击右侧图标选择目录';
+  @override
+  String get pickDirectory => '选择目录';
+  @override
+  String get readOnly => '只读';
+  @override
+  String get readOnlyHint => '信任的设备只能浏览/下载，不能上传或删除';
+  @override
+  String get longTerm => '长期挂载';
+  @override
+  String get sessionOnly => '本次会话';
+  @override
+  String get addDirectory => '添加共享目录';
+  @override
+  String get addDirectoryHint => '选一个本地目录，让被信任的设备能浏览和下载里面的文件。';
+  @override
+  String removeDirectory({required Object name}) => '移除 ${name}？';
+  @override
+  String get removeDirectoryHint => '这只撤销挂载；不会影响磁盘上的文件。';
+  @override
+  String get remove => '移除';
+  @override
+  String get kindSession => '会话';
+  @override
+  String get kindLongTerm => '长期';
+  @override
+  String get addTrustedDevice => '添加信任设备';
+  @override
+  String get addTrustedDeviceHint => '从局域网发现设备中挑选；被信任后它们能浏览你的共享目录。';
+  @override
+  String addTrustedCount({required Object count}) => '添加信任 (${count})';
+  @override
+  String get alreadyTrusted => '已信任';
+  @override
+  String get noNearbyDevices => '附近没有发现其他设备';
+  @override
+  String get revoke => '移除信任';
+  @override
+  String get neverSeen => '从未访问';
+  @override
+  String get seenJustNow => '刚刚访问';
+  @override
+  String seenMinutesAgo({required Object count}) => '${count} 分钟前访问';
+  @override
+  String seenHoursAgo({required Object count}) => '${count} 小时前访问';
+  @override
+  String seenDaysAgo({required Object count}) => '${count} 天前访问';
+  @override
+  String seenMonthsAgo({required Object count}) => '${count} 个月前访问';
+  @override
+  String get allFilesAccessRequired => '共享文件夹需要完全的文件访问权限。请为本应用开启「所有文件访问权限」，然后重新选择文件夹。';
+  @override
+  String get trustAll => '全部';
+  @override
+  String get trustTrusted => '已信任';
+  @override
+  String get trustUntrusted => '未信任';
+  @override
+  String get editDirectory => '编辑共享目录';
 }
 
 // Path: receiveTab.infoBox
