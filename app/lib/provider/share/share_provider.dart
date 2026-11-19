@@ -14,8 +14,6 @@ import 'package:uuid/uuid.dart';
 /// session-only directories live in memory and disappear on restart. Every
 /// mutation is also pushed into the running server's `ShareRegistry`, so
 /// mounting a directory takes effect without a restart.
-///
-/// See `docs/share-directory.md` §5 + §6.
 class ShareNotifier extends Notifier<ShareSnapshot> {
   static const _uuid = Uuid();
 

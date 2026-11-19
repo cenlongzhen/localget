@@ -71,7 +71,7 @@ LocalGet 是 LocalSend 的派生项目，沿用同一套传输协议（v2.2）�
 - **Range**：`bytes=start-end` / `bytes=start-` / `bytes=-suffix` 三态，命中返回 `206` + `Content-Range`，不可满足返回 `416`，多段返回 `400`
 - **热挂载**：目录与信任列表通过 `Arc<RwLock<…>>` 在运行期更新，改动无需重启服务器
 
-实现位于 `packages/core/src/share/`（模型、注册表、路径守卫）与 `packages/core/src/http/server/share.rs`（三个 handler）；端到端往返测试见 `packages/core/tests/v2_share.rs`，完整设计契约见 [docs/share-directory.md](docs/share-directory.md)。
+实现位于 `packages/core/src/share/`（模型、注册表、路径守卫）与 `packages/core/src/http/server/share.rs`（三个 handler），端到端往返测试见 `packages/core/tests/v2_share.rs`。
 
 ## 仓库结构
 

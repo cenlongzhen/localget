@@ -1,10 +1,9 @@
 //! HTTP handlers for the shared-directory endpoints.
 //!
-//! Contract in `docs/share-directory.md`. All three endpoints authorize
-//! strictly on `RequestClientInfo::cert_fingerprint` — SHA-256 upper-hex of
-//! the mTLS client certificate DER — being a member of the active
-//! [`ShareRegistry`]'s trusted set. Any other credential path (encryption
-//! off, browser without a client certificate, …) is a hard 403.
+//! All three endpoints authorize strictly on `RequestClientInfo::cert_fingerprint`
+//! — SHA-256 upper-hex of the mTLS client certificate DER — being a member of
+//! the active [`ShareRegistry`]'s trusted set. Any other credential path
+//! (encryption off, browser without a client certificate, …) is a hard 403.
 //!
 //! `dirs`, `list` and `download` are wired into `mod.rs`'s request match via
 //! `AppState::share`. `download` reads the

@@ -6,8 +6,6 @@
 //! `RequestClientInfo::identifier()`, which resolves to the peer IP (`"127.0.0.1"`)
 //! for loopback connections — letting tests populate the trusted set with the
 //! same string without needing real client certificates.
-//!
-//! See `docs/share-directory.md` §2 and §7.
 
 use bytes::Bytes;
 use http_body_util::{BodyExt, Empty};
