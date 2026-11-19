@@ -164,12 +164,9 @@ cargo check --package rust_lib_localsend_app --package localsend-cli
 
 ## 许可证
 
-本项目是 LocalSend 的派生作品，因此采用 **双许可**：
+本项目采用 **Apache License 2.0**，完整文本见 [LICENSE](LICENSE)，派生关系与修改说明见 [NOTICE](NOTICE)。
 
-- 从 LocalSend 派生的代码仍为 **Apache License 2.0**，版权归 Tien Do Nam 及 LocalSend 贡献者所有，完整文本见 [LICENSE](LICENSE)，修改说明见 [NOTICE](NOTICE)
-- 本项目新增的代码（共享目录协议、共享页 UI 等）以 **MIT License** 发布，文本见 [LICENSE-MIT](LICENSE-MIT)
-
-Apache-2.0 是宽松许可证，允许再许可与商业使用，但不允许把上游代码单方面改成 MIT；因此整仓不能整体换成 MIT，只能对新增部分单独授权。分发时请同时保留 `LICENSE`、`NOTICE` 与 `LICENSE-MIT`。
+LocalGet 是 LocalSend 的派生作品，因此沿用上游的 Apache-2.0：版权归 Tien Do Nam 及 LocalSend 贡献者所有，本项目新增的共享目录协议与共享页 UI 同样以此许可证发布。分发时请保留 `LICENSE` 与 `NOTICE`。
 
 ## 致谢
 

@@ -2,15 +2,12 @@ LocalGet
 Copyright 2026 cenlongzhen and LocalGet contributors
 
 This product is a derivative work of LocalSend (https://github.com/localsend/localsend),
-Copyright 2022-2026 Tien Do Nam and LocalSend contributors, licensed under the
-Apache License, Version 2.0.
+Copyright 2022-2026 Tien Do Nam and LocalSend contributors.
 
-Files and directories derived from LocalSend remain under the Apache License 2.0
-and are distributed unmodified in their licensing terms; see the LICENSE file.
-Newly added code (the shared-directory protocol under packages/core/src/share,
-packages/core/src/http/{client,server}/share.rs, the FRB bindings for it, and the
-Flutter shared-directory pages/providers) is licensed under the MIT License; see
-the LICENSE-MIT file.
+The entire repository, including the shared-directory protocol
+(packages/core/src/share, packages/core/src/http/{client,server}/share.rs),
+its FRB bindings and the Flutter shared-directory pages/providers, is licensed
+under the Apache License, Version 2.0; see the LICENSE file.
 
 Third-party components keep their own licenses; run `flutter pub deps` for the
 Dart dependency licenses shown in the app's "License Notices" page.
